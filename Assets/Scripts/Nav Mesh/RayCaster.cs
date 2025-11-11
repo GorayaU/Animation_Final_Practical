@@ -18,7 +18,6 @@ public class RayCaster : MonoBehaviour
             if (Physics.Raycast(ray, out hit))
             {
                 NavMeshController.Target = hit.point;
-                Debug.Log(hit.point);  //point is a position x,y,z  e.g. this.transform.position = hit.point
             }       
         }
     }

@@ -29,7 +29,7 @@ public class PathController : MonoBehaviour
 
         isWalking = false;
         if (animator != null)
-            animator.SetBool("isWalking", isWalking);
+            animator.SetBool("IsWalking", isWalking);
             animator.SetBool("Idle", !isWalking);
     }
 
