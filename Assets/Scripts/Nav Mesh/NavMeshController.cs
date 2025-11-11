@@ -4,7 +4,7 @@ using UnityEngine.AI;
 
 public class NavMeshController : MonoBehaviour
 {
-    public GameObject Target;
+    public static Vector3 Target;
     private NavMeshAgent agent;
 
     void Start()
@@ -15,7 +15,7 @@ public class NavMeshController : MonoBehaviour
     void Update()
     {
 
-        agent.destination = Target.transform.position;
+        agent.destination = Target;
 
     }
 
@@ -26,6 +26,7 @@ public class NavMeshController : MonoBehaviour
             //edit here
         }
     }
+        
     private void OnTriggerExit(Collider other)
     {
         if (other.name == "Target")

@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,66 +9,76 @@ public class PathController : MonoBehaviour
     List<Waypoint> thePath;
     Waypoint target;
 
-    public float MoveSpeed;
-    public float RotateSpeed;
+    public float MoveSpeed = 3f;
+    public float RotateSpeed = 5f;
 
     public Animator animator;
     bool isWalking;
 
+    int currentIndex = 0;
 
-    // Start is called before the first frame update
     void Start()
     {
         thePath = pathManager.GetPath();
-        if (thePath != null && thePath.Count > 0 )
+
+        if (thePath != null && thePath.Count > 0)
         {
-            target = thePath[0];
+            currentIndex = 0;
+            target = thePath[currentIndex];
         }
 
         isWalking = false;
-        animator.SetBool("isWalking", isWalking);
+        if (animator != null)
+            animator.SetBool("isWalking", isWalking);
+            animator.SetBool("Idle", !isWalking);
     }
 
-    void rotateTowardsTarget()
+    void Update()
+    {
+        // Toggle walking with any key press (keep if you like this behavior)
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            isWalking = !isWalking;
+            if (animator != null)
+                animator.SetBool("IsWalking", isWalking);
+                animator.SetBool("Idle", !isWalking);
+        }
+
+        if (!isWalking || target == null) return;
+
+        RotateTowardsTarget();
+        MoveTowardsTarget();
+    }
+
+    void RotateTowardsTarget()
     {
         float stepSize = RotateSpeed * Time.deltaTime;
 
-        Vector3 targetDir = target.pos - transform.position;
-        Vector3 newDir = Vector3.RotateTowards(transform.forward, targetDir, stepSize, 0.0f);
+        Vector3 targetDir = (target.pos - transform.position);
+        if (targetDir.sqrMagnitude < 0.0001f) return;
+
+        Vector3 newDir = Vector3.RotateTowards(transform.forward, targetDir.normalized, stepSize, 0.0f);
         transform.rotation = Quaternion.LookRotation(newDir);
     }
 
-    void moveForward()
+    void MoveTowardsTarget()
     {
-        float stepSize = Time.deltaTime * MoveSpeed;
+        float stepSize = MoveSpeed * Time.deltaTime;
+        
+        transform.position = Vector3.MoveTowards(transform.position, target.pos, stepSize);
+
         float distanceToTarget = Vector3.Distance(transform.position, target.pos);
-        if (distanceToTarget < stepSize)
+        if (distanceToTarget <= 0.05f)
         {
-            return;
-        }
-
-        Vector3 moveDir = Vector3.forward;
-        transform.Translate(moveDir * stepSize);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (Input.anyKeyDown)
-        {
-            isWalking = !isWalking;
-            animator.SetBool("isWalking", isWalking);
-        }
-        if (isWalking)
-        {
-            rotateTowardsTarget();
-            moveForward();
+            AdvanceToNextWaypoint();
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    void AdvanceToNextWaypoint()
     {
-        if(other.name.Equals(""))
-        target = pathManager.GetNextTarget();
+        if (thePath == null || thePath.Count == 0) return;
+
+        currentIndex = (currentIndex + 1) % thePath.Count;
+        target = thePath[currentIndex];
     }
 }
